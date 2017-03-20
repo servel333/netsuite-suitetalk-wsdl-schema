@@ -1,0 +1,1 @@
+# netsuite-suitetalk-wsdl-schema
