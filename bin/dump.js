@@ -43,6 +43,40 @@ soap.createClient(wsdl.file, function(err, client){
   appendTo(COMPLEX_TYPES_FILE, JSON.stringify(complexTypes, null, 2));
 
   ////////////////////
+  // Generate Attributes in Complex Types list
+
+  const COMPLEX_TYPE_ATTRIBUTES_FILE = path.join(PATH, 'complexTypeAttributes.json');
+  console.log('Writing to '+COMPLEX_TYPE_ATTRIBUTES_FILE);
+
+  var complexTypeAttributess = [];
+  // 'wsdl.definitions.schemas[].complexTypes.Customer.children[0].children[0]',
+
+  _.each(_.get(client, 'wsdl.definitions.schemas'), (schema, namespaceUri) => {
+    _.each(_.get(schema, 'complexTypes'), (type, typeName) => {
+      _.each(_.get(type, 'children'), (complexContent) => {
+        _.each(_.get(complexContent, 'children'), (extension) => {
+
+          // "nsName": "attribute",
+          // "prefix": "__tns__",
+          // "name": "attribute",
+          // "children": [],
+          // "$name": "externalId",
+          // "$type": "xsd:string"
+
+          complexTypeAttributess.push({
+            complexTypeName: typeName,
+            name: extension.$name,
+            type: extension.$type,
+          });
+        });
+      });
+    });
+  });
+  complexTypeAttributess = _.sortBy(complexTypeAttributess, v => ''+v.complexTypeName+v.name);
+  _.attempt(fs.unlinkSync, COMPLEX_TYPE_ATTRIBUTES_FILE);
+  appendTo(COMPLEX_TYPE_ATTRIBUTES_FILE, JSON.stringify(complexTypeAttributess, null, 2));
+
+  ////////////////////
   // Generate Method Names list
 
   const METHOD_NAMES_FILE = path.join(PATH, 'methodNames.json');
